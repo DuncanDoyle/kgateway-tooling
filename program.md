@@ -35,7 +35,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `filter` (see P-001) | open |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open |
 | E7 | CLI Phase 5 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
-| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | mostly available; needs a small exported seam (see below) — confirmed by kgateway-ui 2026-11-04 |
+| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available; convenience helpers requested (see below) — confirmed by kgateway-ui 2026-11-04 |
 
 **E2 one-shot use:**
 1. `cache.New(cfg)`, then `Start(ctx)`, which does not block. Wait for `Settled()` or the first `Config.Changes` notify. Then `Snapshot()`, `engine.New(cfg).Compute()`.
@@ -45,7 +45,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 **E8 `check` MVP:**
 1. Run checks through `engine.New(cfg).Compute()` over a settled cache; it calls `health.Evaluate` per install. Calling `Evaluate` directly needs many derived inputs the engine builds.
-2. Controller metrics: `ctrlmetrics.Collector.Collect(ctx, install)` scrapes once, synchronously. The engine reads metrics through `cfg.Metrics`, so the CLI needs a static metrics source. That seam is not exported yet: the one change kgateway-ui must make for E8.
+2. Controller metrics: `ctrlmetrics.NewCollector(PodProxyScraper{...}).Collect(ctx, install)` scrapes once, synchronously. `cfg.Metrics` takes the exported `ctrlmetrics.Source` interface (one method), so the CLI can wrap that Result itself. Not blocking; a shared static source and config builder are requested in a `cross-repo` issue.
 3. Time-based checks (restart hold, grace periods, metric staleness) are pending on a single pass. Report them as not yet known, or wait until `Report.Next`.
 4. Key output on finding code and `Finding.id`, both stable (UI D-028, D-040). Severity belongs to each finding, not to a code.
 
