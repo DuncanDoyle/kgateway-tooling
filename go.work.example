@@ -1,0 +1,9 @@
+// Copy to go.work in the directory that holds the repo checkouts, then fix the paths.
+// Never commit go.work: consumers must build against tagged versions in CI.
+go 1.26.0
+
+use (
+	./krp
+	./kgateway-ui
+	./kgwctl
+)
