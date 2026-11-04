@@ -28,13 +28,14 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
-| E1 | CLI Phase 2 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | open |
+| E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | open |
 | E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available, with caveats below (confirmed by kgateway-ui 2026-11-04) |
-| E3 | CLI Phase 3 | `check` / `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
+| E3 | CLI Phase 4 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | open |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `filter` (see P-001) | open |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open |
-| E7 | CLI Phase 4 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
+| E7 | CLI Phase 5 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
+| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | mostly available; needs a small exported seam (see below) — confirmed by kgateway-ui 2026-11-04 |
 
 **E2 one-shot use:**
 1. `cache.New(cfg)`, then `Start(ctx)`, which does not block. Wait for `Settled()` or the first `Config.Changes` notify. Then `Snapshot()`, `engine.New(cfg).Compute()`.
@@ -42,14 +43,20 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 3. Proxy stats, xDS rejects and process health are scraped on a timer. A load-once caller sees them as unknown unless it waits for a scrape. Gateway API state is complete.
 4. The UI builds `cache.Config` / `engine.Config` in its `cmd/`. No exported helper yet; the CLI builds its own, or asks for one via a `cross-repo` issue.
 
+**E8 `check` MVP:**
+1. Run checks through `engine.New(cfg).Compute()` over a settled cache; it calls `health.Evaluate` per install. Calling `Evaluate` directly needs many derived inputs the engine builds.
+2. Controller metrics: `ctrlmetrics.Collector.Collect(ctx, install)` scrapes once, synchronously. The engine reads metrics through `cfg.Metrics`, so the CLI needs a static metrics source. That seam is not exported yet: the one change kgateway-ui must make for E8.
+3. Time-based checks (restart hold, grace periods, metric staleness) are pending on a single pass. Report them as not yet known, or wait until `Report.Next`.
+4. Key output on finding code and `Finding.id`, both stable (UI D-028, D-040). Severity belongs to each finding, not to a code.
+
 ## Order of work
 
 | Step | krp | CLI | kgateway-ui |
 |---|---|---|---|
 | 1 | Phase 4 library extraction → `v0.1.0` | roadmap, Phase 1 design | 3.2 |
-| 2 | Phase 5 data-plane accuracy | Phase 1: scaffold, `get`/`describe` | 3.3 analyzer |
-| 3 | Phase 6 intended vs accepted | Phase 2: `proxy routes`; Phase 3: `check`, `analyze -f` | 3.4, then Phase 4+ |
-| later | — | Phase 4 policies (after UI Phase 5); Phase 5 move into kgateway | Phase 9 consumes krp |
+| 2 | Phase 5 data-plane accuracy | Phase 1: scaffold, `get`/`describe`; Phase 2: `check` MVP | 3.3 analyzer |
+| 3 | Phase 6 intended vs accepted | Phase 3: `proxy routes`; Phase 4: full analysis, `analyze -f` | 3.4, then Phase 4+ |
+| later | — | Phase 5 policies (after UI Phase 5); Phase 6 move into kgateway | Phase 9 consumes krp |
 
 krp Phase 4 is the only hard blocker today.
 
