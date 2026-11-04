@@ -28,10 +28,10 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
-| E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04) |
+| E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
 | E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available, with caveats below (confirmed by kgateway-ui 2026-11-04) |
 | E3 | CLI Phase 4 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
-| E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | partly available — krp `v0.1.0`; see below |
+| E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | partly available — krp `v0.1.0`; see below; notified kgateway-ui#15 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `filter` (see P-001) | open |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license delivered in krp `v0.1.0`; P-002 is krp Phase 5 |
 | E7 | CLI Phase 5 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
@@ -41,7 +41,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
 2. `kube.Options.RESTConfig` takes the caller's `*rest.Config`. client-go v0.36.2.
 3. The JSON contract is `krp dump -o json`; golden files in krp `testdata/golden/`.
-4. Known gap (krp Q9): a call cancelled while the port-forward connects leaves that connection open until it finishes. Harmless for a CLI; the UI's long-running backend needs the krp Phase 5 fix before it uses `source/kube`.
+4. Known gap ([krp#25](https://github.com/DuncanDoyle/krp/issues/25)): a call cancelled while the port-forward connects leaves that connection open until it finishes. Harmless for a CLI; the UI's long-running backend needs the krp Phase 5 fix before it uses `source/kube`.
 5. Filter names are control-plane labels, not types. OSS kgateway names policy filters `<kind>/<ns>/<name>` per `GatewayExtension`; the mapping is krp Phase 5 (E5).
 
 **E2 one-shot use:**
