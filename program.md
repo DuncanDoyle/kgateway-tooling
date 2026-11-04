@@ -8,9 +8,9 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 | Component | Repo | Role | Workflow |
 |---|---|---|---|
-| krp | [DuncanDoyle/krp](https://github.com/DuncanDoyle/krp) | Envoy data-plane library + reference CLI/TUI | krp phase commands (`docs/phase-status.md`, `docs/plans/`) |
+| krp | [DuncanDoyle/krp](https://github.com/DuncanDoyle/krp) | Envoy data-plane library + reference CLI/TUI | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
 | kgateway-ui | [DuncanDoyle/kgateway-ui](https://github.com/DuncanDoyle/kgateway-ui) | Web UI; Go backend whose `pkg/` is a versioned library | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
-| CLI (working name `kgwctl`) | no GitHub repo yet (roadmap drafted locally) | kgateway CLI; integrates krp and kgateway-ui libraries | agentic-engineering-sdlc |
+| CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and kgateway-ui libraries | agentic-engineering-sdlc |
 
 **Final home:** the CLI moves into [kgateway-dev/kgateway](https://github.com/kgateway-dev/kgateway). The UI's home is open. Libraries may live outside kgateway until a consumer moves.
 
