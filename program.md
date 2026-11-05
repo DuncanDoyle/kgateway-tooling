@@ -18,7 +18,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 | Provider | Packages | Status | Version |
 |---|---|---|---|
-| krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phase 4 | `v0.1.0` |
+| krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.2.0` |
 | kgateway-ui | `pkg/cache`, `engine`, `objects`, `kinds`, `computed` | exists; versioned API (UI D-003) | untagged |
 | kgateway-ui | analyzer package | planned, UI sub-phase 3.3 | tbd |
 
@@ -31,18 +31,19 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
 | E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available, with caveats below (confirmed by kgateway-ui 2026-11-04) |
 | E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
-| E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | partly available — krp `v0.1.0`; see below; notified kgateway-ui#15 |
-| E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `filter` (see P-001) | open |
-| E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license delivered in krp `v0.1.0`; P-002 is krp Phase 5 |
+| E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | mostly available — krp `v0.2.0` (model, mapping, `source/kube` cancellation); intended vs accepted is krp Phase 6 |
+| E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `origin` (see P-001) | available — krp `v0.2.0` (2026-11-05) |
+| E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license in krp `v0.1.0`; P-002 seam (`origin.Chain`) in `v0.2.0`; krp's `testdata/enterprise/` still to remove |
 | E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
 | E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available; convenience helpers requested (see below) — confirmed by kgateway-ui 2026-11-04 |
 
-**krp `v0.1.0` use (E1, E4):**
+**krp `v0.2.0` use (E1, E4, E5):**
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
 2. `kube.Options.RESTConfig` takes the caller's `*rest.Config`. client-go v0.36.2.
 3. The JSON contract is `krp dump -o json`; golden files in krp `testdata/golden/`.
-4. Known gap ([krp#25](https://github.com/DuncanDoyle/krp/issues/25)): a call cancelled while the port-forward connects leaves that connection open until it finishes. Harmless for a CLI; the UI's long-running backend needs the krp Phase 5 fix before it uses `source/kube`.
-5. Filter names are control-plane labels, not types. OSS kgateway names policy filters `<kind>/<ns>/<name>` per `GatewayExtension`; the mapping is krp Phase 5 (E5).
+4. `source/kube` cancellation is fixed ([krp#25](https://github.com/DuncanDoyle/krp/issues/25)), except through an HTTP/SOCKS proxy in front of the API server ([krp#26](https://github.com/DuncanDoyle/krp/issues/26), not a requirement).
+5. Mapping (E5): `origin.Annotate(snap, origin.Chain(plugin, origin.Kgateway(opts)))`. Every answer carries a certainty: exact (metadata), inferred, ambiguous, unknown. Route names usually read several ways; pass the HTTPRoutes you know as `KgatewayOptions.Known`, or run kgateway with `enableRouteSourceMetadata`.
+6. UI `EnvoyNamer.Object(name)`: `origin.ObjectForName(mapper, name)` maps cluster and route-config names from proxy stats. It needs `KgatewayOptions.Gateway` for route configs.
 
 **E2 one-shot use:**
 1. `cache.New(cfg)`, then `Start(ctx)`, which does not block. Wait for `Settled()` or the first `Config.Changes` notify. Then `Snapshot()`, `engine.New(cfg).Compute()`.
@@ -65,7 +66,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | 3 | Phase 6 intended vs accepted | Phase 3: `proxy routes`; Phase 4: support bundle; Phase 5: full analysis, `analyze -f` | 3.4, then Phase 4+ |
 | later | — | Phase 6 policies (after UI Phase 5); Phase 7 move into kgateway | Phase 9 consumes krp |
 
-krp Phase 4 delivered `v0.1.0` on 2026-11-04. No hard blockers today.
+krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05). No hard blockers today.
 
 ## Program decisions
 
