@@ -18,7 +18,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 | Provider | Packages | Status | Version |
 |---|---|---|---|
-| krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.2.0` |
+| krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.2.1` |
 | kgateway-ui | `pkg/cache`, `engine`, `objects`, `kinds`, `computed` | exists; versioned API (UI D-003) | untagged |
 | kgateway-ui | analyzer package | planned, UI sub-phase 3.3 | tbd |
 
@@ -37,12 +37,12 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
 | E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available; convenience helpers requested (see below) — confirmed by kgateway-ui 2026-11-04 |
 
-**krp `v0.2.0` use (E1, E4, E5):**
+**krp `v0.2.1` use (E1, E4, E5):**
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
 2. `kube.Options.RESTConfig` takes the caller's `*rest.Config`. client-go v0.36.2.
 3. The JSON contract is `krp dump -o json`; golden files in krp `testdata/golden/`.
 4. `source/kube` cancellation is fixed ([krp#25](https://github.com/DuncanDoyle/krp/issues/25)), except through an HTTP/SOCKS proxy in front of the API server ([krp#26](https://github.com/DuncanDoyle/krp/issues/26), not a requirement).
-5. Mapping (E5): `origin.Annotate(snap, origin.Chain(plugin, origin.Kgateway(opts)))`. Every answer carries a certainty: exact (metadata), inferred, ambiguous, unknown. Route names usually read several ways; pass the HTTPRoutes you know as `KgatewayOptions.Known`, or run kgateway with `enableRouteSourceMetadata`.
+5. Mapping (E5): `origin.Annotate(snap, origin.Chain(plugin, origin.Kgateway(opts)))`. Every answer carries a certainty: exact (metadata), inferred, ambiguous, unknown. Route names usually read several ways; pass the HTTPRoutes you know as `KgatewayOptions.Known` (`kube.HTTPRoutes` lists them, since `v0.2.1`), or run kgateway with `enableRouteSourceMetadata`.
 6. UI `EnvoyNamer.Object(name)`: `origin.ObjectForName(mapper, name)` maps cluster and route-config names from proxy stats. It needs `KgatewayOptions.Gateway` for route configs.
 
 **E2 one-shot use:**
