@@ -1,6 +1,6 @@
 # kgateway tooling program
 
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-05
 
 Three projects build kgateway operator tooling. Each has its own roadmap and agent sessions. This file is the source of truth for what crosses repo boundaries: exported contracts, dependency edges, order of work and program-level decisions. Per-repo detail stays in each repo.
 
@@ -30,11 +30,11 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 |---|---|---|---|---|
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
 | E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available, with caveats below (confirmed by kgateway-ui 2026-11-04) |
-| E3 | CLI Phase 4 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
+| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | partly available — krp `v0.1.0`; see below; notified kgateway-ui#15 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `filter` (see P-001) | open |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license delivered in krp `v0.1.0`; P-002 is krp Phase 5 |
-| E7 | CLI Phase 5 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
+| E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
 | E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available; convenience helpers requested (see below) — confirmed by kgateway-ui 2026-11-04 |
 
 **krp `v0.1.0` use (E1, E4):**
@@ -62,8 +62,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 |---|---|---|---|
 | 1 | Phase 4 library extraction → `v0.1.0` | roadmap, Phase 1 design | 3.2 |
 | 2 | Phase 5 data-plane accuracy | Phase 1: scaffold, `get`/`describe`; Phase 2: `check` MVP | 3.3 analyzer |
-| 3 | Phase 6 intended vs accepted | Phase 3: `proxy routes`; Phase 4: full analysis, `analyze -f` | 3.4, then Phase 4+ |
-| later | — | Phase 5 policies (after UI Phase 5); Phase 6 move into kgateway | Phase 9 consumes krp |
+| 3 | Phase 6 intended vs accepted | Phase 3: `proxy routes`; Phase 4: support bundle; Phase 5: full analysis, `analyze -f` | 3.4, then Phase 4+ |
+| later | — | Phase 6 policies (after UI Phase 5); Phase 7 move into kgateway | Phase 9 consumes krp |
 
 krp Phase 4 delivered `v0.1.0` on 2026-11-04. No hard blockers today.
 
