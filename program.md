@@ -19,8 +19,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Provider | Packages | Status | Version |
 |---|---|---|---|
 | krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.3.0` (module `github.com/DuncanDoyle/xdsview`) |
-| kgateway-ui | `pkg/cache`, `engine`, `objects`, `kinds`, `computed` | exists; versioned API (UI D-003) | untagged |
-| kgateway-ui | analyzer package | planned, UI sub-phase 3.3 | tbd |
+| kgateway-ui | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–3.3; versioned API (UI D-003) | `v0.3.0` |
+| kgateway-ui | analyzer: `pkg/health` (codes 001–026 less the 3.4 ones), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phase 3.3 | `v0.3.0` |
 
 `model`, `parser` and `filter` must not import client-go, lipgloss or bubbletea, so the UI can import them under its D-016 import rules. Fetching lives in `source`; port-forwarding, the only client-go user, is in `source/kube`.
 
@@ -29,13 +29,13 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
-| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available, with caveats below (confirmed by kgateway-ui 2026-11-04) |
-| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | open — accepted for 3.3 planning |
+| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16), with caveats below |
+| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.3.0` (2026-11-05): the analyzer over a cache snapshot; `analyze -f` (snapshot from files) is not in UI 3.3 (UI R79) |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | mostly available — krp `v0.2.0` (model, mapping, `source/kube` cancellation); intended vs accepted is krp Phase 6; notified kgateway-ui#21 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `origin` (see P-001) | available — krp `v0.2.0` (2026-11-05); notified kgwctl#2, kgateway-ui#21 |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license in krp `v0.1.0`; P-002 seam (`origin.Chain`) in `v0.2.0`; krp's `testdata/enterprise/` still to remove |
 | E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
-| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available; convenience helpers requested (see below) — confirmed by kgateway-ui 2026-11-04 |
+| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available — kgateway-ui `v0.3.0` (2026-11-05): `pkg/setup` and `ctrlmetrics.Static` (UI D-053, kgateway-ui#13) |
 
 **xdsview `v0.3.0` use (E1, E4, E5):** import `github.com/DuncanDoyle/xdsview/pkg/envoy/...` (renamed from `DuncanDoyle/krp` in `v0.3.0`, D-007; API unchanged).
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
@@ -49,11 +49,11 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 1. `cache.New(cfg)`, then `Start(ctx)`, which does not block. Wait for `Settled()` or the first `Config.Changes` notify. Then `Snapshot()`, `engine.New(cfg).Compute()`.
 2. "Settled" also means a List/Watch failed. Report the snapshot's per-kind access errors, or a forbidden kind looks empty.
 3. Proxy stats, xDS rejects and process health are scraped on a timer. A load-once caller sees them as unknown unless it waits for a scrape. Gateway API state is complete.
-4. The UI builds `cache.Config` / `engine.Config` in its `cmd/`. No exported helper yet; the CLI builds its own, or asks for one via a `cross-repo` issue.
+4. `setup.Build` builds `cache.Config` / `engine.Config` the way the UI does (since `v0.3.0`); its Go doc has the one-shot wait.
 
 **E8 `check` MVP:**
 1. Run checks through `engine.New(cfg).Compute()` over a settled cache; it calls `health.Evaluate` per install. Calling `Evaluate` directly needs many derived inputs the engine builds.
-2. Controller metrics: `ctrlmetrics.NewCollector(PodProxyScraper{...}).Collect(ctx, install)` scrapes once, synchronously. `cfg.Metrics` takes the exported `ctrlmetrics.Source` interface (one method), so the CLI can wrap that Result itself. Not blocking; a shared static source and config builder are requested in a `cross-repo` issue.
+2. Controller metrics: `ctrlmetrics.NewCollector(PodProxyScraper{...}).Collect(ctx, install)` scrapes once, synchronously. `cfg.Metrics` takes the exported `ctrlmetrics.Source` interface (one method), so the CLI can wrap that Result itself; `ctrlmetrics.Static` does that, with the engine's staleness (since `v0.3.0`).
 3. Time-based checks (restart hold, grace periods, metric staleness) are pending on a single pass. Report them as not yet known, or wait until `Report.Next`.
 4. Key output on finding code and `Finding.id`, both stable (UI D-028, D-040). Severity belongs to each finding, not to a code.
 
