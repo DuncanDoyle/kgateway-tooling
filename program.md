@@ -74,7 +74,7 @@ krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05).
 - **P-002** Vendor-specific policy support (beyond kgateway OSS) is a plugin outside library cores. No vendor or edition names in any library.
 - **P-003** The CLI is built from scratch. [kgateway#13654](https://github.com/kgateway-dev/kgateway/pull/13654) and earlier prototypes are idea sources only: the relation graph, label-based policy discovery, `check`, `analyze -f`. No gwctl fork, no go-graphviz.
 - **P-004** The CLI imports the libraries and talks to the cluster directly. It does not need the UI backend. A thin-client mode against the UI API is optional, later.
-- **P-005** Get kgateway maintainer buy-in on the CLI early with a short design proposal, before a large PR.
+- **P-005** ~~Get kgateway maintainer buy-in on the CLI early with a short design proposal, before a large PR.~~ Deferred 2026-11-05 (kgwctl D-011): the owner leads both the product and most maintainers; revisit at the CLI's upstream move.
 
 ## Coordination protocol
 
