@@ -29,7 +29,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
-| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | available — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16), with caveats below |
+| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | done — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16); consumed by CLI Phase 1, complete 2026-11-06 |
 | E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.3.0` (2026-11-05): the analyzer over a cache snapshot; `analyze -f` (snapshot from files) is not in UI 3.3 (UI R79) |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | mostly available — krp `v0.2.0` (model, mapping, `source/kube` cancellation); intended vs accepted is krp Phase 6; notified kgateway-ui#21 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `origin` (see P-001) | available — krp `v0.2.0` (2026-11-05); notified kgwctl#2, kgateway-ui#21 |
@@ -66,7 +66,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | 3 | Phase 6 intended vs accepted | Phase 3: `proxy routes`; Phase 4: support bundle; Phase 5: full analysis, `analyze -f` | 3.4, then Phase 4+ |
 | later | — | Phase 6 policies (after UI Phase 5); Phase 7 move into kgateway | Phase 9 consumes krp |
 
-krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05). No hard blockers today.
+krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05). The CLI finished Phase 1 on 2026-11-06 (`get`, `describe`, `version`, `pkg/cli`). No hard blockers today.
 
 ## Program decisions
 
