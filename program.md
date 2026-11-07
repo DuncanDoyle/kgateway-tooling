@@ -9,8 +9,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Component | Repo | Role | Workflow |
 |---|---|---|---|
 | xdsview (was krp) | [DuncanDoyle/xdsview](https://github.com/DuncanDoyle/xdsview) | Envoy data-plane library `xdsview` + reference CLI/TUI `krp` | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
-| kgateway-ui | [DuncanDoyle/kgateway-ui](https://github.com/DuncanDoyle/kgateway-ui) | Web UI; Go backend whose `pkg/` is a versioned library | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
-| CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and kgateway-ui libraries | agentic-engineering-sdlc |
+| Snellius (formerly kgateway-ui) | [DuncanDoyle/snellius](https://github.com/DuncanDoyle/snellius) | Web UI; Go backend whose `pkg/` is a versioned library (module `github.com/DuncanDoyle/snellius` since `v0.5.0`) | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
+| CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and Snellius libraries | agentic-engineering-sdlc |
 
 **Final home:** the CLI moves into [kgateway-dev/kgateway](https://github.com/kgateway-dev/kgateway). The UI's home is open. Libraries may live outside kgateway until a consumer moves.
 
@@ -19,8 +19,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Provider | Packages | Status | Version |
 |---|---|---|---|
 | krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.3.0` (module `github.com/DuncanDoyle/xdsview`) |
-| kgateway-ui | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–3.4; versioned API (UI D-003) | `v0.4.0` |
-| kgateway-ui | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.4 (023, 024 in 3.4) | `v0.4.0` |
+| Snellius | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–4; versioned API (UI D-003) | `v0.5.0` |
+| Snellius | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.5 (023, 024 in 3.4) | `v0.5.0` |
 
 `model`, `parser` and `filter` must not import client-go, lipgloss or bubbletea, so the UI can import them under its D-016 import rules. Fetching lives in `source`; port-forwarding, the only client-go user, is in `source/kube`.
 
@@ -29,13 +29,13 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
-| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | done — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16); consumed by CLI Phase 1, complete 2026-11-06. `v0.4.0` (2026-11-07): list-only kinds (kgwctl#17) and `cache.Wait` (kgwctl#20) |
-| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.4.0` (2026-11-07): the analyzer over a cache snapshot, with 023 and 024; `analyze -f` (snapshot from files) is not in UI Phase 3 (UI R79) |
+| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | done — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16); consumed by CLI Phase 1, complete 2026-11-06. `v0.4.0` (2026-11-07): list-only kinds (kgwctl#17) and `cache.Wait` (kgwctl#20). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius` |
+| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.4.0` (2026-11-07): the analyzer over a cache snapshot, with 023 and 024; `analyze -f` (snapshot from files) is not in UI Phase 3 (UI R79). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius`; 3.5 fixes |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | mostly available — krp `v0.2.0` (model, mapping, `source/kube` cancellation); intended vs accepted is krp Phase 6; notified kgateway-ui#21 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `origin` (see P-001) | available — krp `v0.2.0` (2026-11-05); notified kgwctl#2, kgateway-ui#21 |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license in krp `v0.1.0`; P-002 seam (`origin.Chain`) in `v0.2.0`; krp's `testdata/enterprise/` still to remove |
 | E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
-| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available — kgateway-ui `v0.3.0` (2026-11-05): `pkg/setup` and `ctrlmetrics.Static` (UI D-053, kgateway-ui#13); `v0.4.0` adds `setup.Options.NoEndpoints` |
+| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available — kgateway-ui `v0.3.0` (2026-11-05): `pkg/setup` and `ctrlmetrics.Static` (UI D-053, kgateway-ui#13); `v0.4.0` adds `setup.Options.NoEndpoints`; `v0.5.0` (2026-11-08) renames the module to `github.com/DuncanDoyle/snellius` and drops the status-sync count from `ctrlmetrics` |
 
 **xdsview `v0.3.0` use (E1, E4, E5):** import `github.com/DuncanDoyle/xdsview/pkg/envoy/...` (renamed from `DuncanDoyle/krp` in `v0.3.0`, D-007; API unchanged).
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
@@ -51,6 +51,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 3. Proxy stats, xDS rejects and process health are scraped on a timer. A load-once caller sees them as unknown unless it waits for a scrape. Gateway API state is complete.
 4. `setup.Build` builds `cache.Config` / `engine.Config` the way the UI does (since `v0.3.0`); its Go doc has the one-shot wait.
 5. Since `v0.4.0`: DirectResponse, GatewayExtension and ReferenceGrant are list-only (`kinds.Descriptor.ListOnly`), outside cluster access and `Settled`; `cache.Wait()` returns once every goroutine `Start` launched has exited.
+6. Since `v0.5.0`: import `github.com/DuncanDoyle/snellius/...`; earlier tags stay under `github.com/DuncanDoyle/kgateway-ui`.
 
 **E8 `check` MVP:**
 1. Run checks through `engine.New(cfg).Compute()` over a settled cache; it calls `health.Evaluate` per install. Calling `Evaluate` directly needs many derived inputs the engine builds.
