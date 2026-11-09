@@ -19,8 +19,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Provider | Packages | Status | Version |
 |---|---|---|---|
 | krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.3.0` (module `github.com/DuncanDoyle/xdsview`) |
-| Snellius | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–4; versioned API (UI D-003) | `v0.5.0` |
-| Snellius | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.5 (023, 024 in 3.4) | `v0.5.0` |
+| Snellius | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–5; versioned API (UI D-003). From `v0.6.0`, controller metrics reach the engine only as a collected value: `ctrlmetrics.CollectOnce` + `Publish` into `setup.Config.Collected` (UI Phase 5 design §7); `computed.Rules` loses `Delegation` (optional `computed.Delegator`); `extension.NewCore` and packs are additive | `v0.6.0` |
+| Snellius | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.5 (023, 024 in 3.4) | `v0.6.0` |
 
 `model`, `parser` and `filter` must not import client-go, lipgloss or bubbletea, so the UI can import them under its D-016 import rules. Fetching lives in `source`; port-forwarding, the only client-go user, is in `source/kube`.
 
@@ -29,13 +29,13 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | ID | Consumer | Needs | Provider deliverable | Status |
 |---|---|---|---|---|
 | E1 | CLI Phase 3 | `proxy routes` (krp view in the CLI) | krp Phase 4 library, `v0.1.0` | available — krp `v0.1.0` (2026-11-04); notified kgwctl#1 |
-| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | done — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16); consumed by CLI Phase 1, complete 2026-11-06. `v0.4.0` (2026-11-07): list-only kinds (kgwctl#17) and `cache.Wait` (kgwctl#20). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius` |
-| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.4.0` (2026-11-07): the analyzer over a cache snapshot, with 023 and 024; `analyze -f` (snapshot from files) is not in UI Phase 3 (UI R79). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius`; 3.5 fixes |
+| E2 | CLI Phase 1 | `get` / `describe` on live cluster | UI `pkg/cache` + `engine` used one-shot | done — kgateway-ui `v0.3.0` (2026-11-05, kgateway-ui#16); consumed by CLI Phase 1, complete 2026-11-06. `v0.4.0` (2026-11-07): list-only kinds (kgwctl#17) and `cache.Wait` (kgwctl#20). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius`. `v0.6.0` (2026-11-09): packs and `extension.NewCore`, additive; `extension.New` unchanged |
+| E3 | CLI Phase 5 | full `check` analysis, `analyze -f` | UI 3.3 analyzer exported under `pkg/` | available — kgateway-ui `v0.4.0` (2026-11-07): the analyzer over a cache snapshot, with 023 and 024; `analyze -f` (snapshot from files) is not in UI Phase 3 (UI R79). `v0.5.0` (2026-11-08): module path `github.com/DuncanDoyle/snellius`; 3.5 fixes. `v0.6.0` (2026-11-09): pack checks run only on their installs; kgateway findings unchanged |
 | E4 | UI Phase 9 | runtime filter chain tab | krp Phase 4 (+5 mapping, +6 intended vs accepted) | mostly available — krp `v0.2.0` (model, mapping, `source/kube` cancellation); intended vs accepted is krp Phase 6; notified kgateway-ui#21 |
 | E5 | UI, CLI | Envoy name → Gateway API ref mapping | krp Phase 5 `origin` (see P-001) | available — krp `v0.2.0` (2026-11-05); notified kgwctl#2, kgateway-ui#21 |
 | E6 | CLI move into kgateway | license-clean, vendor-neutral libraries | krp Apache-2.0 license (Phase 4); vendor policy plugins outside core (P-002) | open — license in krp `v0.1.0`; P-002 seam (`origin.Chain`) in `v0.2.0`; krp's `testdata/enterprise/` still to remove |
 | E7 | CLI Phase 6 | attached and effective policy in `describe` | UI Phase 5 policy model in `pkg/` | open |
-| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available — kgateway-ui `v0.3.0` (2026-11-05): `pkg/setup` and `ctrlmetrics.Static` (UI D-053, kgateway-ui#13); `v0.4.0` adds `setup.Options.NoEndpoints`; `v0.5.0` (2026-11-08) renames the module to `github.com/DuncanDoyle/snellius` and drops the status-sync count from `ctrlmetrics` |
+| E8 | CLI Phase 2 | `check` MVP | UI health checks (KGWUI-001 onward) run one-shot via `engine.Compute`, with controller metrics from one synchronous scrape | available — kgateway-ui `v0.3.0` (2026-11-05): `pkg/setup` and `ctrlmetrics.Static` (UI D-053, kgateway-ui#13); `v0.4.0` adds `setup.Options.NoEndpoints`; `v0.5.0` (2026-11-08) renames the module to `github.com/DuncanDoyle/snellius` and drops the status-sync count from `ctrlmetrics`. Breaks in Snellius `v0.6.0` (UI Phase 5, on `main` from 2026-11-09): `ctrlmetrics.Static`, `ctrlmetrics.Source` and `cfg.Engine.Metrics` are gone; use `ctrlmetrics.CollectOnce` + `Publish` into `setup.Config.Collected` (kgwctl#6) |
 
 **xdsview `v0.3.0` use (E1, E4, E5):** import `github.com/DuncanDoyle/xdsview/pkg/envoy/...` (renamed from `DuncanDoyle/krp` in `v0.3.0`, D-007; API unchanged).
 1. `source.File`, `source.Admin` or `kube.Gateway`/`kube.Deployment` → `ConfigDump(ctx)` → `parser.Parse` → `filter.Filter`. Close the reader to stop a port-forward.
@@ -55,7 +55,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 
 **E8 `check` MVP:**
 1. Run checks through `engine.New(cfg).Compute()` over a settled cache; it calls `health.Evaluate` per install. Calling `Evaluate` directly needs many derived inputs the engine builds.
-2. Controller metrics: `ctrlmetrics.NewCollector(PodProxyScraper{...}).Collect(ctx, install)` scrapes once, synchronously. `cfg.Metrics` takes the exported `ctrlmetrics.Source` interface (one method), so the CLI can wrap that Result itself; `ctrlmetrics.Static` does that, with the engine's staleness (since `v0.3.0`).
+2. Controller metrics (since `v0.6.0`): after the wait, take one `Snapshot()`, keep the `install.Discover` installs whose `Impl` is `"kgateway"`, then `ctrlmetrics.Publish(cfg.Collected, ctrlmetrics.CollectOnce(ctx, ctrlmetrics.PodProxyScraper{Kube: kube}, insts, setup.MetricsMaxAge(interval)))`. Set `cfg.Engine.Snapshots` to return that snapshot and call `engine.New(cfg.Engine).Compute()`. Staleness is per entry, from `Results.MaxAge`. Without `Publish`, KGWUI-001 reads "controller metrics not collected yet". The `ctrlmetrics` Go doc has the sequence.
 3. Time-based checks (restart hold, grace periods, metric staleness) are pending on a single pass. Report them as not yet known, or wait until `Report.Next`.
 4. Key output on finding code and `Finding.id`, both stable (UI D-028, D-040). Severity belongs to each finding, not to a code.
 
