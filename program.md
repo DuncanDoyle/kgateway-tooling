@@ -11,6 +11,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | xdsview (was krp) | [DuncanDoyle/xdsview](https://github.com/DuncanDoyle/xdsview) | Envoy data-plane library `xdsview` + reference CLI/TUI `krp` | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
 | Snellius (formerly kgateway-ui) | [DuncanDoyle/snellius](https://github.com/DuncanDoyle/snellius) | Web UI; Go backend whose `pkg/` is a versioned library (module `github.com/DuncanDoyle/snellius` since `v0.5.0`) | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
 | CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and Snellius libraries | agentic-engineering-sdlc |
+| snellius.dev | [DuncanDoyle/snellius.dev](https://github.com/DuncanDoyle/snellius.dev) | Snellius website and user docs (Astro + Starlight, deployed by Cloudflare from `main`) | follows Snellius releases (P-006) |
 
 **Final home:** the CLI moves into [kgateway-dev/kgateway](https://github.com/kgateway-dev/kgateway). The UI's home is open. Libraries may live outside kgateway until a consumer moves.
 
@@ -78,11 +79,13 @@ krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05).
 - **P-004** The CLI imports the libraries and talks to the cluster directly. It does not need the UI backend. A thin-client mode against the UI API is optional, later.
 - **P-005** ~~Get kgateway maintainer buy-in on the CLI early with a short design proposal, before a large PR.~~ Deferred 2026-11-05 (kgwctl D-011): the owner leads both the product and most maintainers; revisit at the CLI's upstream move.
 
+- **P-006** snellius.dev is Snellius's user documentation. A Snellius change that users can see (pages, findings, flags, chart values, install steps, supported versions) updates the site in the same release: the Snellius phase or sub-phase does not close until the site matches. Finding codes come from Snellius `docs/findings.md` via `npm run sync:findings` in the site repo. The site presents Snellius as a kgateway UI only.
+
 ## Coordination protocol
 
 1. **Phase start (every repo):** read this file. Check open `cross-repo` issues in your repo and in the repos you wait on.
 2. **Requests between repos:** a GitHub issue in the provider repo, label `cross-repo`, title prefix `[from <repo>]`, body names the edge ID.
 3. **Contracts are tags.** Consumers require a tagged version. For co-development, use an uncommitted `go.work` in the parent directory (see `go.work.example`).
-4. **Phase close:** update the edge status and contract table here. Propose a release tag if a contract changed. Notify each consumer with a `cross-repo` issue in its repo naming the edge and version.
+4. **Phase close:** update the edge status and contract table here. Propose a release tag if a contract changed. Notify each consumer with a `cross-repo` issue in its repo naming the edge and version. Snellius also brings snellius.dev up to date (P-006).
 5. **Live pings:** local sessions can message each other (`SendMessage`; find names with `ListAgents`, named after the repo directory). Use it for "tag published" or "issue filed" only. The record lives in this file and in issues.
 6. **Changes to this file** are made by the session whose phase changed, in a small commit of its own.
