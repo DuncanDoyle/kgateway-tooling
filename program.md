@@ -12,7 +12,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Snellius (formerly kgateway-ui) | [DuncanDoyle/snellius](https://github.com/DuncanDoyle/snellius) | Web UI; Go backend whose `pkg/` is a versioned library (module `github.com/DuncanDoyle/snellius` since `v0.5.0`) | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
 | CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and Snellius libraries | agentic-engineering-sdlc |
 | snellius.dev | [DuncanDoyle/snellius.dev](https://github.com/DuncanDoyle/snellius.dev) | Snellius website and user docs (Astro + Starlight, deployed by Cloudflare from `main`) | follows Snellius releases (P-006) |
-| snellius-demo | [DuncanDoyle/snellius-demo](https://github.com/DuncanDoyle/snellius-demo) | Installs kgateway, Snellius and sample use cases on any cluster, optionally with Keycloak and secure mode | installs the latest Snellius chart by default; check its README at each Snellius release |
+| snellius-demo | [DuncanDoyle/snellius-demo](https://github.com/DuncanDoyle/snellius-demo) | Installs kgateway, Snellius and sample use cases on any cluster, optionally with Keycloak and secure mode; walkthrough scenarios, each with its verified expected findings (P-007) | installs the latest Snellius chart by default; check its README at each Snellius release |
 
 **Final home:** the CLI moves into [kgateway-dev/kgateway](https://github.com/kgateway-dev/kgateway). The UI's home is open. Libraries may live outside kgateway until a consumer moves.
 
@@ -86,6 +86,7 @@ krp delivered `v0.1.0` (Phase 4, 2026-11-04) and `v0.2.0` (Phase 5, 2026-11-05).
 - **P-005** ~~Get kgateway maintainer buy-in on the CLI early with a short design proposal, before a large PR.~~ Deferred 2026-11-05 (kgwctl D-011): the owner leads both the product and most maintainers; revisit at the CLI's upstream move.
 
 - **P-006** snellius.dev is Snellius's user documentation. A Snellius change that users can see (pages, findings, flags, chart values, install steps, supported versions) updates the site in the same release: the Snellius phase or sub-phase does not close until the site matches. Finding codes come from Snellius `docs/findings.md` via `npm run sync:findings` in the site repo. The site presents Snellius as a kgateway UI only.
+- **P-007** The walkthrough scenarios live in snellius-demo (2026-11-20; moved from a Snellius draft, snellius#41). Each is a small kgateway setup with the exact findings it raises, verified on a real cluster. They are shared test input: Snellius uses them to walk through and review the UI, and kgwctl uses them to check `check` against the same analyzer. A finding change in Snellius (new code, severity or timing) updates the affected scenarios' expected findings in the same release, like P-006.
 
 ## Coordination protocol
 
