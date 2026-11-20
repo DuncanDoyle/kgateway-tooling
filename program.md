@@ -12,6 +12,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Snellius (formerly kgateway-ui) | [DuncanDoyle/snellius](https://github.com/DuncanDoyle/snellius) | Web UI; Go backend whose `pkg/` is a versioned library (module `github.com/DuncanDoyle/snellius` since `v0.5.0`) | agentic-engineering-sdlc (`docs/phase-status.md`, `docs/phases/`) |
 | CLI (working name `kgwctl`) | [DuncanDoyle/kgwctl](https://github.com/DuncanDoyle/kgwctl) | kgateway CLI; integrates krp and Snellius libraries | agentic-engineering-sdlc |
 | snellius.dev | [DuncanDoyle/snellius.dev](https://github.com/DuncanDoyle/snellius.dev) | Snellius website and user docs (Astro + Starlight, deployed by Cloudflare from `main`) | follows Snellius releases (P-006) |
+| snellius-demo | [DuncanDoyle/snellius-demo](https://github.com/DuncanDoyle/snellius-demo) | Installs kgateway, Snellius and sample use cases on any cluster, optionally with Keycloak and secure mode | installs the latest Snellius chart by default; check its README at each Snellius release |
 
 **Final home:** the CLI moves into [kgateway-dev/kgateway](https://github.com/kgateway-dev/kgateway). The UI's home is open. Libraries may live outside kgateway until a consumer moves.
 
@@ -20,8 +21,8 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | Provider | Packages | Status | Version |
 |---|---|---|---|
 | krp | `pkg/envoy/model`, `parser`, `filter`, `source`, `source/kube`, `origin`; `krp dump -o json` (`v1alpha1`) | delivered, krp Phases 4–5 | `v0.3.0` (module `github.com/DuncanDoyle/xdsview`) |
-| Snellius | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–5; versioned API (UI D-003). From `v0.6.0`, controller metrics reach the engine only as a collected value: `ctrlmetrics.CollectOnce` + `Publish` into `setup.Config.Collected` (UI Phase 5 design §7); `computed.Rules` loses `Delegation` (optional `computed.Delegator`); `extension.NewCore` and packs are additive. `v0.7.0` adds `cache.ListOnce` and `cache.Config.Namespaces` (UI Phase 6, D-076). `v0.8.0` adds `explore.Index.RouteSignals` (configuration and traffic path per route; UI Phase 7, D-087) | `v0.8.0` |
-| Snellius | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.5 (023, 024 in 3.4) | `v0.8.0` |
+| Snellius | `pkg/cache`, `engine`, `objects`, `kinds`, `computed`, `setup`, `ctrlmetrics` | delivered, UI Phases 1–5; versioned API (UI D-003). From `v0.6.0`, controller metrics reach the engine only as a collected value: `ctrlmetrics.CollectOnce` + `Publish` into `setup.Config.Collected` (UI Phase 5 design §7); `computed.Rules` loses `Delegation` (optional `computed.Delegator`); `extension.NewCore` and packs are additive. `v0.7.0` adds `cache.ListOnce` and `cache.Config.Namespaces` (UI Phase 6, D-076). `v0.8.0` adds `explore.Index.RouteSignals` (configuration and traffic path per route; UI Phase 7, D-087) | `v0.8.0`; `v0.8.1` and `v0.8.2` change only the web UI, no contract |
+| Snellius | analyzer: `pkg/health` (codes 001–026), `pkg/diagnose` (groups, `Fix`) | delivered, UI sub-phases 3.3–3.5 (023, 024 in 3.4) | `v0.8.0`; unchanged in `v0.8.1` and `v0.8.2` |
 
 `model`, `parser` and `filter` must not import client-go, lipgloss or bubbletea, so the UI can import them under its D-016 import rules. Fetching lives in `source`; port-forwarding, the only client-go user, is in `source/kube`.
 
