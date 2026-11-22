@@ -143,6 +143,7 @@ No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in pa
 | M-1 | Snellius D-020 (`pkg/computed`, rule sets `kgw23`–`kgw25`) | view A route→listener attachment; view B delegation child selection, including rejected and dropped candidates; view C the delegated child's merged matcher (kgateway `pkg/kgateway/utils/delegation` `MergeParentChildRouteMatch`); kgateway 2.3–2.5 | KGWUI-012 on a status disagreement. Status checks do not confirm the matcher; matcher conformance is separate. Optional later cross-check: the Envoy route's match, when xDS is available (P-008 point 6) | per view: view C's matcher with U10; views A and B only when upstream covers them | registered; Snellius to record matcher conformance (rule 2) |
 | M-2 | Snellius KGWUI-016 | only the zero-candidate diagnostic: a targetSelector matches no readable object (empty selects nothing; global policy namespace). Never attachment | none from status today | kgateway#14998 (U6) | registered, scoped |
 | M-3 | convergence investigation | the controller's client key for a proxy pod: normalised role, hash of the pod's labels augmented with node hostname and locality, namespace | a match against a key in `/snapshots/xds` shows only that some client has that entry; it does not bind the sampled pod to it | U9 | candidate, not approved |
+| M-4 | Snellius `pkg/install` scope (Snellius D-009, D-024) | the controller's discovery scope: `KGW_DISCOVERY_NAMESPACE_SELECTORS` parsed with kgateway's semantics (empty means all namespaces; OR of label selectors); kgateway `api/settings/settings.go` DiscoveryNamespaceSelectors, `pkg/pluginsdk/collections/discovery.go` NewDiscoveryNamespacesFilter; kgateway 2.3–2.5. Consumers: Snellius install assignment, KGWUI-004 and 007, `Scope.Excluded` (next Snellius release); kgwctl Phase 4 bundle scope | KGWUI-007 against `kgateway_resources_managed` per namespace | U12 | registered; rule 2 is a unit test only, not checked against real controller output (same gap as M-1) |
 
 ## xDS convergence (P-009)
 
@@ -203,6 +204,7 @@ None is filed by a tooling session without the owner's approval.
 | U9 | expose each pod's snapshot key | none yet | retires M-3 |
 | U10 | delegation chain provenance in xDS metadata | none yet | retires M-1 view C; views A and B need their own evidence |
 | U11 | when kgateway writes `typed_per_filter_config[<filter>]` from a policy, record filter name → policy refs and field in the metadata of the same RouteConfiguration, virtual host or route (Envoy's `FilterConfig` has no metadata). Check the field numbers against the Envoy version kgateway ships before filing | none yet (proposed by xdsview, D-016) | exact filter links in E13 when several filters match a field |
+| U12 | a read-only controller endpoint with identity, version, controllerNames, parsed discovery selectors, selected namespaces and enabled kinds | being filed by Snellius at the owner's request (2026-11-22) | retires M-4; KGWUI-007 for experimental kinds (Snellius D-017 §4) |
 
 ## Open questions
 
