@@ -204,7 +204,7 @@ None is filed by a tooling session without the owner's approval.
 | U9 | expose each pod's snapshot key | none yet | retires M-3 |
 | U10 | delegation chain provenance in xDS metadata | none yet | retires M-1 view C; views A and B need their own evidence |
 | U11 | when kgateway writes `typed_per_filter_config[<filter>]` from a policy, record filter name → policy refs and field in the metadata of the same RouteConfiguration, virtual host or route (Envoy's `FilterConfig` has no metadata). Check the field numbers against the Envoy version kgateway ships before filing | none yet (proposed by xdsview, D-016) | exact filter links in E13 when several filters match a field |
-| U12 | a read-only controller endpoint with identity, version, controllerNames, parsed discovery selectors, selected namespaces and enabled kinds | being filed by Snellius at the owner's request (2026-11-22) | retires M-4; KGWUI-007 for experimental kinds (Snellius D-017 §4) |
+| U12 | a read-only controller endpoint with identity, version, controllerNames, parsed discovery selectors, selected namespaces and enabled kinds | [kgateway#15070](https://github.com/kgateway-dev/kgateway/issues/15070) (filed 2026-11-22) | retires M-4; KGWUI-007 for experimental kinds (Snellius D-017 §4) |
 
 ## Open questions
 
