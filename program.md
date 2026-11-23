@@ -1,6 +1,6 @@
 # kgateway tooling program
 
-**Last updated:** 2026-11-22
+**Last updated:** 2026-11-23
 
 Three projects build kgateway operator tooling. Each has its own roadmap and agent sessions. This file is the source of truth for what crosses repo boundaries: exported contracts, dependency edges, order of work and program-level decisions. Per-repo detail stays in each repo.
 
@@ -44,6 +44,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | E12 | a downstream consumer (separate service and web UI) | reuse of Snellius login, authorization and UI building blocks | Snellius: `pkg/auth/oidc` and `pkg/auth/session`; the SubjectAccessReview checker, cache and limiter in `pkg/auth/sar`, split from Snellius's visibility layer; `@snellius/shell` theme tokens and components, published or as a git dependency | deferred (2026-11-21) — nothing is extracted until the consumer's design starts, after Snellius Phase 14 and the remote MCP. Decide then which pieces to extract and version as contracts. Until then, keep `pkg/auth/oidc` and `pkg/auth/session` free of Snellius-specific imports. A generic external-link action on Snellius pages is deferred with it. Reused policy rendering is declared and controller-reported only (P-008) |
 | E13 | CLI `proxy routes` (shipped, Phase 3); UI Phase 12; E7 | every attribution states its certainty: a policy contribution is at most `inferred`; a policy field links to a filter only when exactly one filter entry matches; unmapped fields stay listed, not dropped (xdsview#30) | xdsview Phase 8.1 (xdsview D-012, D-014, D-016), released as `v0.5.0`: JSON adds `certainty` (additive), text adds `(inferred)`, consumer goldens change. The 6.5 level tie-break is dropped (xdsview D-016, D-017); no recorded golden changes its contributions, so kgwctl sees labels only: `certainty` and `indexCertainty` in JSON, ` (inferred)` in text | available — xdsview `v0.5.0` (2026-11-22, sub-phase 8.1); notified kgwctl#11. kgwctl `proxy routes` shows inferred attribution as fact until it moves to `v0.5.0`. An exact link when several filters match needs U11 |
 | E14 | to be named by the convergence investigation (P-009) | per-proxy, per-type xDS convergence evidence | to be decided; xdsview supplies Envoy-side primitives only when the investigation names an operator scenario (xdsview D-011) | proposed — not a contract. Nothing is promised until the investigation reports |
+| E15 | kgwctl (`proxy routes`, Phase 6 via E7); UI Phase 12 | the Phase 9 contract (P-010): execution and provenance as separate results, claims with their own evidence, results keyed by occurrence, scoped `merge.*` records, explicit module composition, a `NameMapper` for stats names; krp JSON `v1alpha2` | xdsview Phase 9, one tagged release; supersedes the Go usage of E5, E11 and E13 | planned — after xdsview `v0.6.0` and the P-009 investigation. kgwctl migrates `proxy routes` in step, independent of its Phase 6: it builds its own `ProxyRoutes` payload instead of embedding `model`, and bumps the shared envelope to `kgwctl.kgateway.dev/v1alpha2`, which touches every command's JSON and YAML; text, JSON and YAML goldens are reviewed. kgwctl Phase 6 (E7) joins the scoped `merge.*` records with Snellius `pkg/policy` by ref. UI Phase 12 targets this tag, not an earlier one |
 
 UI phase numbers follow Snellius D-084 (2026-11-14): Phase 7 is Identity & Access, and the old UI Phases 7–13 are now 8–14. References above use the new numbers.
 
@@ -86,8 +87,8 @@ Done: xdsview Phases 4–6 (`v0.4.3`); kgwctl Phases 1–3; Snellius Phases 1–
 | Priority | xdsview | kgwctl | Snellius |
 |---|---|---|---|
 | now | Phase 8 vendor-neutral core (xdsview D-015, D-016): 8.1 attribution certainty → `v0.5.0` (E13); 8.2–8.3 enterprise corpus and seam → `v0.6.0` (E6). Each tag gets a phase cross-model review and a kgwctl notice | Phase 4 support bundle: proxy-side convergence inputs and controller metrics per replica, timestamped; bump to xdsview `v0.5.0` with golden updates, then `v0.6.0` | Phase 8 Policies & Filters: declared policy first, controller-reported provenance second, no resolver (P-008) |
-| next | xDS convergence investigation, design only (P-009) | Phase 5 full analysis, `analyze -f` | M-1: record its rule-1 entry and matcher conformance; design the optional xDS cross-check for Phase 12 |
-| later | a convergence phase only if the investigation names one (E14) | Phase 6 after E7; Phase 7 move into kgateway after E6; local MCP in a downstream build (E10, kgwctl D-023) | Phases 9, 14, then 10–13; Phase 12 consumes E4, E5, E13 |
+| next | xDS convergence investigation, design only (P-009); then Phase 9, the control-plane-agnostic contract (P-010, E15) | Phase 5 full analysis, `analyze -f`; migrate `proxy routes` to E15 when xdsview Phase 9 tags | M-1: record its rule-1 entry and matcher conformance; design the optional xDS cross-check for Phase 12 |
+| later | a convergence phase only if the investigation names one (E14); additive E15 extensions on a named consumer case (P-010 point 7) | Phase 6 after E7; Phase 7 move into kgateway after E6; local MCP in a downstream build (E10, kgwctl D-023) | Phases 9, 14, then 10–13; Phase 12 consumes E4, E5, E13 through the E15 tag |
 
 No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in parallel.
 
@@ -110,6 +111,8 @@ No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in pa
   6. Snellius works without xDS. Its views come from declared state, controller status and metrics, and proxy stats. Runtime config from xdsview adds evidence and cross-checks; it never becomes a prerequisite.
   7. Allowing policy mirrors later takes a new program decision that supersedes point 2, under the same mirror rules.
 - **P-009** (2026-11-22) xDS convergence replaces intended vs accepted. A generic diff of the controller snapshot against `/config_dump` is withdrawn: E4's intended-vs-accepted part and xdsview Phase 7 (xdsview D-011). The question is whether each proxy runs what the controller intends, per type. The xdsview session investigates it, design only, after xdsview Phase 8. Details in "xDS convergence" below.
+
+- **P-010** (2026-11-23) xdsview is control-plane agnostic. Envoy semantics live in the core; product modules add provenance only. Phase 9 makes one coordinated contract break, after the P-009 investigation. Details in "Control-plane-agnostic xdsview" below.
 
 ## Policy provenance (P-008)
 
@@ -172,6 +175,40 @@ Questions to answer, each with an operator scenario:
 
 Inputs: kgwctl Phase 4 bundles give proxy captures and controller metrics, timestamped. They leave out the controller's admin snapshots (kgwctl Phase 4 design). The investigation captures the controller side itself on kind clusters, and records which questions a bundle alone cannot answer. Output: a recommendation naming the operator scenarios, the provider of each piece (E14), and the upstream asks it depends on.
 
+## Control-plane-agnostic xdsview (P-010)
+
+Layers, with dependencies pointing down only:
+1. Consumers: krp, kgwctl, Snellius Phase 12, downstream product modules' callers. They compose execution first, then provenance.
+2. Product modules: `adapter/kgateway` in xdsview; others downstream (P-002), against xdsview's public API only.
+3. Provenance contracts: claims, evidence, composition.
+4. Envoy core: `model`, `parser`, the effective chain, `render`, `source`; standard library only (xdsview D-004), enforced by the existing dependency test. `source/kube` stays the only client-go user.
+
+Rules:
+1. Execution analysis (parse, effective chain, order, sides, run and disable state, warnings) depends only on Envoy data. It never calls a module. The core never imports a module.
+2. Modules get immutable or isolated input and return claims; the composer applies them. A test compares independent parses, with zero modules and with every supported composition: raw input and execution output are identical. Provenance is checked separately.
+3. The core never invents execution. Where it cannot establish something (ECDS without config, sides of an unknown implementation, conditional wrappers, unparsed predicates or actions), it keeps the raw slot in its position with explicit uncertainty: an ECDS filter without config is not shown as running. Known Envoy wrapper behaviour (Composite, ExtensionWithMatcher) stays. Modules never supply sides.
+4. Certainty is per claim. A `merge.*` policy record is an exact, level-local observation of validated controller metadata; it says nothing about which level governs a request (P-008). A field→filter link names both its record and one installed filter slot by occurrence. It is at most inferred when derived from a table, and only made when exactly one slot matches; otherwise the record stays unplaced (E13). An exact link needs evidence that names the filter at the same level (U11) and a decision update.
+5. A module needs evidence per object. Caller-supplied context (a Gateway name, a product guess) is not evidence.
+6. Composition is explicit and deterministic. Conflicting claims of equal authority become ambiguous; no first-wins.
+7. Phase 9 is the one break. After it, contract changes are additive and driven by a named consumer case; another break needs its own program decision.
+8. P-001, P-002, P-008, P-009, E6 and xdsview D-011 to D-018 stand. `origin`'s ownership of `merge.*` and `route_source` decoding moves with the kgateway module.
+
+**Phase 9 scope** (xdsview designs the API; this list is what the break must contain):
+1. Pure execution: the effective chain no longer imports provenance.
+2. Execution and provenance as separate results over read-only input.
+3. One claim per assertion with its own certainty, evidence kind and producing module. A policy record and its filter link are separate claims; the link references both occurrences (rule 4).
+4. Results keyed by snapshot occurrence (listener, HCM, route config, virtual host, route, filter slot). Names are evidence, not keys: duplicate filter names and shared route configs stay distinct.
+5. Listener, RouteConfiguration and virtual-host `merge.*` records decoded beside route records, level-local (P-008 glossary). The evidence scope of each runtime block is enumerable, so Snellius can withhold a whole block the viewer may not fully read.
+6. Candidate route readings come from the kgateway module; selection and pruning are explicit calls by the consumer. Every candidate is kept and narrowing is recorded; krp's pre-filter and kgwctl's unresolved-route listing keep working.
+7. A separate `NameMapper` with certainty, resource kind and ambiguity for names without a dump (E5, Snellius `EnvoyNamer`).
+8. krp JSON `v1alpha2`. kgwctl builds its own payload instead of embedding xdsview's `model`.
+
+Core correctness in the same phase, after the break: static listeners and route configs (the kgateway corpus has a static readiness listener), non-HCM chains kept, ECDS and wrapper state kept, top-level header and query matchers, invert, `case_sensitive`, default filter chains, cluster selectors, direct-response and redirect actions, and a coverage policy for sections outside the analysis. OSS output changes; goldens are reviewed.
+
+**Additive later**, each on a named consumer case: delegation path when a producer exists (U10); exact filter links (U11); wider policy scopes (U1); cluster origins beyond bare names; product detection from capture context.
+
+**Other control planes.** Their dumps live in a private downstream repo, sanitized: no customer hosts, no inline secrets. That repo runs them through xdsview's core without any module at each xdsview release, and reports regressions to xdsview without naming the product. A downstream product module comes later, only when a consumer needs its attribution and an owner accepts responsibility for its compatibility; it depends only on xdsview's public API. Public records say "downstream product module". Public xdsview tests the core with neutral fixtures: a static HTTP bootstrap, a synthetic custom filter, and optionally an Envoy Gateway dump.
+
 ## Ownership
 
 | Concern | Owner | Consumers |
@@ -179,8 +216,10 @@ Inputs: kgwctl Phase 4 bundles give proxy captures and controller metrics, times
 | Policy resolution and translation | kgateway controller (upstream) | everyone, read-only |
 | Declared state: resources, targetRefs, status | Snellius `pkg/cache`, `objects`, `explore` | kgwctl (E2, E7) |
 | Reading ancestor conditions into findings | Snellius `pkg/health` | kgwctl `check` (E3, E8) |
-| Envoy name → Gateway API ref; decoding `merge.*` and `route_source` metadata (no other decoder) | xdsview `origin` (P-001) | Snellius (E5, and M-1's optional cross-check), kgwctl (E5, E7) |
-| Runtime filter chain; field→filter attribution, labelled | xdsview `chain` (E11, E13) | kgwctl, Snellius (E4) |
+| Envoy name → Gateway API ref; decoding `merge.*` and `route_source` metadata (no other decoder) | xdsview `origin` (P-001); the kgateway module from Phase 9 (P-010) | Snellius (E5, and M-1's optional cross-check), kgwctl (E5, E7) |
+| Runtime filter chain (execution) | xdsview `chain` (E11); module-free from Phase 9 (P-010) | kgwctl, Snellius (E4) |
+| Field→filter attribution, labelled | xdsview `chain` (E13); the kgateway module and composition from Phase 9 (P-010) | kgwctl, Snellius (E4) |
+| Product modules for other control planes | their downstream owners (P-002, P-010) | their own callers |
 | Registered mirrors | the project named in the register | — |
 | Findings, including future convergence findings | Snellius `pkg/health` | kgwctl `check` |
 | Convergence data capture | kgwctl Phase 4 bundle (proxy side, controller metrics); the investigation (controller snapshots on kind) | the investigation |
@@ -214,6 +253,7 @@ None is filed by a tooling session without the owner's approval.
 4. Is `/snapshots/xds` safe to collect in a support bundle? Phase 4 leaves it out for now. kgwctl, later.
 5. Which upstream asks to file, and in what order? Owner.
 6. Does the convergence investigation produce a new edge, a Snellius finding, or nothing? The investigation decides (E14).
+7. Exact Go names and shapes of the Phase 9 contract (E15). xdsview's Phase 9 design decides. kgwctl and Snellius review the design before it is approved.
 
 ## Coordination protocol
 
