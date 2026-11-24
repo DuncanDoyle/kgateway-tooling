@@ -1,6 +1,6 @@
 # kgateway tooling program
 
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-24
 
 Three projects build kgateway operator tooling. Each has its own roadmap and agent sessions. This file is the source of truth for what crosses repo boundaries: exported contracts, dependency edges, order of work and program-level decisions. Per-repo detail stays in each repo.
 
@@ -43,7 +43,7 @@ Three projects build kgateway operator tooling. Each has its own roadmap and age
 | E11 | CLI Phase 3.2 | `proxy routes` tree and filter order per route | xdsview: exported stdlib text renderer `pkg/envoy/render`, `EffectiveChain` per route, listener state (active, warming, draining, error); UI-neutral types in `model` for Snellius Phase 12 (E4) too | done — consumed by CLI Phase 3 on xdsview `v0.4.3`, complete 2026-11-21 (kgwctl#10 closed). xdsview `v0.4.0` (2026-11-21, Phase 6); xdsview#27 closed; notified kgwctl#10. v0.4.1 (2026-11-21): attribution fixes #28, RouteExtra D-010. v0.4.2 (2026-11-21): narrowing edge cases #29. v0.4.3 (2026-11-21): warning for a skipped HCM, narrowing keeps listeners mid-update #31 |
 | E12 | a downstream consumer (separate service and web UI) | reuse of Snellius login, authorization and UI building blocks | Snellius: `pkg/auth/oidc` and `pkg/auth/session`; the SubjectAccessReview checker, cache and limiter in `pkg/auth/sar`, split from Snellius's visibility layer; `@snellius/shell` theme tokens and components, published or as a git dependency | deferred (2026-11-21) — nothing is extracted until the consumer's design starts, after Snellius Phase 14 and the remote MCP. Decide then which pieces to extract and version as contracts. Until then, keep `pkg/auth/oidc` and `pkg/auth/session` free of Snellius-specific imports. A generic external-link action on Snellius pages is deferred with it. Reused policy rendering is declared and controller-reported only (P-008) |
 | E13 | CLI `proxy routes` (shipped, Phase 3); UI Phase 12; E7 | every attribution states its certainty: a policy contribution is at most `inferred`; a policy field links to a filter only when exactly one filter entry matches; unmapped fields stay listed, not dropped (xdsview#30) | xdsview Phase 8.1 (xdsview D-012, D-014, D-016), released as `v0.5.0`: JSON adds `certainty` (additive), text adds `(inferred)`, consumer goldens change. The 6.5 level tie-break is dropped (xdsview D-016, D-017); no recorded golden changes its contributions, so kgwctl sees labels only: `certainty` and `indexCertainty` in JSON, ` (inferred)` in text | available — xdsview `v0.5.0` (2026-11-22, sub-phase 8.1); notified kgwctl#11. kgwctl `proxy routes` shows inferred attribution as fact until it moves to `v0.5.0`. An exact link when several filters match needs U11 |
-| E14 | to be named by the convergence investigation (P-009) | per-proxy, per-type xDS convergence evidence | to be decided; xdsview supplies Envoy-side primitives only when the investigation names an operator scenario (xdsview D-011) | proposed — not a contract. Nothing is promised until the investigation reports |
+| E14 | kgwctl (live diagnostic); Snellius (optional) | xDS convergence per proxy pod and per subscription: `yes`, `no` or `unknown`, each naming the side that proves it | split by the P-009 investigation ([xdsview `263055d`](https://github.com/DuncanDoyle/xdsview/blob/263055d/docs/investigations/xds-convergence.md) §4.1):<ul><li>xdsview core, Phase 9: flag an active HCM whose RDS route configuration is absent from a complete dump (`unknown` when the dump is filtered, `RoutesConfigDump` is missing, or any route config entry was skipped); warming and draining listeners and warming clusters by name (largely exists)</li><li>kgwctl: the live join of controller `/snapshots/xds` and proxy evidence, and the verdict ([kgwctl#13](https://github.com/DuncanDoyle/kgwctl/issues/13)). It extracts only key, type, version and resource names, timestamped per read, and never stores the snapshot</li><li>kgwctl bundles: an offline ceiling only; they cannot answer question 1</li><li>Snellius, optional: proxy-only version differences between replicas, reported as a difference, not drift; the "Config accepted" wording ([snellius#68](https://github.com/DuncanDoyle/snellius/issues/68))</li><li>kgateway upstream: U7, U9, U8</li></ul> | decided 2026-11-24 — the investigation reported, owner-approved. No generic `/snapshots/xds` vs `/config_dump` diff. M-3 undecided |
 | E15 | kgwctl (`proxy routes`, Phase 6 via E7); UI Phase 12 | the Phase 9 contract (P-010): execution and provenance as separate results, claims with their own evidence, results keyed by occurrence, scoped `merge.*` records, explicit module composition, a `NameMapper` for stats names; krp JSON `v1alpha2` | xdsview Phase 9, one tagged release; supersedes the Go usage of E5, E11 and E13 | planned — after xdsview `v0.6.0` and the P-009 investigation. kgwctl migrates `proxy routes` in step, independent of its Phase 6: it builds its own `ProxyRoutes` payload instead of embedding `model`, and bumps the shared envelope to `kgwctl.kgateway.dev/v1alpha2`, which touches every command's JSON and YAML; text, JSON and YAML goldens are reviewed. kgwctl Phase 6 (E7) joins the scoped `merge.*` records with Snellius `pkg/policy` by ref. UI Phase 12 targets this tag, not an earlier one |
 
 UI phase numbers follow Snellius D-084 (2026-11-14): Phase 7 is Identity & Access, and the old UI Phases 7–13 are now 8–14. References above use the new numbers.
@@ -86,8 +86,8 @@ Done: xdsview Phases 4–6 and 8 (`v0.6.0`); kgwctl Phases 1–3; Snellius Phase
 
 | Priority | xdsview | kgwctl | Snellius |
 |---|---|---|---|
-| now | Phase 8 done: `v0.5.0` (E13), `v0.6.0` (E6). Next: the xDS convergence investigation, design only (P-009) | Phase 4 support bundle: proxy-side convergence inputs and controller metrics per replica, timestamped; bump to xdsview `v0.5.0` with golden updates, then `v0.6.0` | Phase 8 Policies & Filters: declared policy first, controller-reported provenance second, no resolver (P-008) |
-| next | Phase 9, the control-plane-agnostic contract (P-010, E15) | Phase 5 full analysis, `analyze -f`; migrate `proxy routes` to E15 when xdsview Phase 9 tags | M-1: record its rule-1 entry and matcher conformance; design the optional xDS cross-check for Phase 12 |
+| now | Phase 8 done: `v0.5.0` (E13), `v0.6.0` (E6). P-009 investigation done (E14). Next: Phase 9 design (P-010, E15), including E14's missing-RDS finding | Phase 4 support bundle: proxy-side convergence inputs and controller metrics per replica, timestamped; bump to xdsview `v0.5.0` with golden updates, then `v0.6.0` | Phase 8 Policies & Filters: declared policy first, controller-reported provenance second, no resolver (P-008) |
+| next | Phase 9 implementation and tag (E15) | Phase 5 full analysis, `analyze -f`; migrate `proxy routes` to E15 when xdsview Phase 9 tags; the E14 live convergence diagnostic (kgwctl#13), slot to be decided | M-1: record its rule-1 entry and matcher conformance; design the optional xDS cross-check for Phase 12 |
 | later | a convergence phase only if the investigation names one (E14); additive E15 extensions on a named consumer case (P-010 point 7) | Phase 6 after E7 and E15 (scoped `merge.*` records); Phase 7 move into kgateway after E6; local MCP in a downstream build (E10, kgwctl D-023) | Phases 9, 14, then 10–13; Phase 12 consumes E4, E5, E13 through the E15 tag |
 
 No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in parallel.
@@ -175,6 +175,8 @@ Questions to answer, each with an operator scenario:
 
 Inputs: kgwctl Phase 4 bundles give proxy captures and controller metrics, timestamped. They leave out the controller's admin snapshots (kgwctl Phase 4 design). The investigation captures the controller side itself on kind clusters, and records which questions a bundle alone cannot answer. Output: a recommendation naming the operator scenarios, the provider of each piece (E14), and the upstream asks it depends on.
 
+**Outcome (2026-11-24).** The investigation reported ([xdsview `263055d`](https://github.com/DuncanDoyle/xdsview/blob/263055d/docs/investigations/xds-convergence.md), two Codex reviews). Convergence is answered per proxy pod and per subscription, as `yes`, `no` or `unknown`, naming the proving side. No generic xDS diff. Providers are in E14; the upstream asks it refines are U7, U8 and U9.
+
 ## Control-plane-agnostic xdsview (P-010)
 
 Layers, with dependencies pointing down only:
@@ -203,7 +205,7 @@ Rules:
 7. A separate `NameMapper` with certainty, resource kind and ambiguity for names without a dump (E5, Snellius `EnvoyNamer`).
 8. krp JSON `v1alpha2`. kgwctl builds its own payload instead of embedding xdsview's `model`.
 
-Core correctness in the same phase, after the break: static listeners and route configs (the kgateway corpus has a static readiness listener), non-HCM chains kept, ECDS and wrapper state kept, top-level header and query matchers, invert, `case_sensitive`, default filter chains, cluster selectors, direct-response and redirect actions, and a coverage policy for sections outside the analysis. OSS output changes; goldens are reviewed.
+Core correctness in the same phase, after the break: an active HCM whose RDS route configuration is absent from a complete dump (E14), static listeners and route configs (the kgateway corpus has a static readiness listener), non-HCM chains kept, ECDS and wrapper state kept, top-level header and query matchers, invert, `case_sensitive`, default filter chains, cluster selectors, direct-response and redirect actions, and a coverage policy for sections outside the analysis. OSS output changes; goldens are reviewed.
 
 **Additive later**, each on a named consumer case: delegation path when a producer exists (U10); exact filter links (U11); wider policy scopes (U1); cluster origins beyond bare names; product detection from capture context.
 
@@ -238,9 +240,9 @@ None is filed by a tooling session without the owner's approval.
 | U4 | status names the winning policy and keeps sectionName | #14919 (sectionName); none yet for the winner | E7 |
 | U5 | GatewayExtension status | kgateway#14792, #14815 | declared view |
 | U6 | status says when a targetSelector matches nothing | kgateway#14998 | retires M-2 |
-| U7 | per-stream ACK and NACK record (version, nonce, last error) with a connected-nodes endpoint or CSDS; pod label on the rejects metrics | none yet; related kgateway#14264 | P-009 questions 1, 3, 4 |
-| U8 | `Programmed` reflects NACKs | kgateway#14453 | P-009 |
-| U9 | expose each pod's snapshot key | none yet | retires M-3 |
+| U7 | per stream and type, tied to pod identity and controller replica: each ACK or NACK correlated to its response by nonce, with version, time, the response's resource names and, for a NACK, the error; connect time per stream; a `pod` label on `rejects_*`. An error-free request from a new subscription stays distinguishable from an ACK. Define what a newer publication and a stream close do to "rejection in force". It proves a response was NACKed; which resource failed still needs proxy evidence, because one response feeds several watches (P-009 investigation §4.2) | none yet; related kgateway#14264 | P-009 questions 1, 3, 4; E14 verdicts without `unknown` |
+| U8 | `Programmed` reflects NACKs. Investigation case: an RDS NACK left a new listener `Programmed=True` that served 404 | kgateway#14453 | P-009, E14 |
+| U9 | return each pod's snapshot key for the connection that pod holds; a proxy cannot learn it, since Envoy shows only the bootstrap role. Alternative today: `DISABLE_POD_LOCALITY_XDS` where one key per Gateway is acceptable | none yet | retires M-3; E14 per-pod verdicts |
 | U10 | delegation chain provenance in xDS metadata | none yet | retires M-1 view C; views A and B need their own evidence |
 | U11 | when kgateway writes `typed_per_filter_config[<filter>]` from a policy, record filter name → policy refs and field in the metadata of the same RouteConfiguration, virtual host or route (Envoy's `FilterConfig` has no metadata). Check the field numbers against the Envoy version kgateway ships before filing | none yet (proposed by xdsview, D-016) | exact filter links in E13 when several filters match a field |
 | U12 | a read-only controller endpoint with identity, version, controllerNames, parsed discovery selectors, selected namespaces and enabled kinds | [kgateway#15070](https://github.com/kgateway-dev/kgateway/issues/15070) (filed 2026-11-22) | retires M-4; KGWUI-007 for experimental kinds (Snellius D-017 §4) |
@@ -252,8 +254,9 @@ None is filed by a tooling session without the owner's approval.
 3. Snellius's core (`pkg/engine`, `pkg/api`) imports the kgateway rule sets through `pkg/computed/rulesets`. Should that selection move behind the kgateway pack (Snellius D-003)? Snellius answers.
 4. Is `/snapshots/xds` safe to collect in a support bundle? Phase 4 leaves it out for now. kgwctl, later.
 5. Which upstream asks to file, and in what order? Owner.
-6. Does the convergence investigation produce a new edge, a Snellius finding, or nothing? The investigation decides (E14).
+6. ~~Does the convergence investigation produce a new edge, a Snellius finding, or nothing?~~ Answered 2026-11-24: both, see E14.
 7. Exact Go names and shapes of the Phase 9 contract (E15). xdsview's Phase 9 design decides. kgwctl and Snellius review the design before it is approved.
+8. M-3 (the client-key mirror) before U9: approve or not. Owner, in review.
 
 ## Coordination protocol
 
