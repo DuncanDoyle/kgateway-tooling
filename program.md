@@ -1,6 +1,6 @@
 # kgateway tooling program
 
-**Last updated:** 2026-11-24
+**Last updated:** 2026-11-25
 
 Three projects build kgateway operator tooling. Each has its own roadmap and agent sessions. This file is the source of truth for what crosses repo boundaries: exported contracts, dependency edges, order of work and program-level decisions. Per-repo detail stays in each repo.
 
@@ -114,6 +114,9 @@ No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in pa
 
 - **P-010** (2026-11-23) xdsview is control-plane agnostic. Envoy semantics live in the core; product modules add provenance only. Phase 9 makes one coordinated contract break, after the P-009 investigation. Details in "Control-plane-agnostic xdsview" below.
 
+- **P-011** (2026-11-25) Logical IDs that must survive replacement come from scoped names, never from UIDs or ranks. UIDs may key state of one incarnation. Details in "Architecture guidelines" below.
+- **P-012** (2026-11-25) Moving to a later kgateway, downstream product, Gateway API or Envoy version reviews every versioned interface the tool consumes: CRDs, kind lists, version-keyed mappings and mirrors. Details in "Architecture guidelines" below.
+
 ## Policy provenance (P-008)
 
 **Glossary.**
@@ -211,6 +214,34 @@ Core correctness in the same phase, after the break: an active HCM whose RDS rou
 
 **Other control planes.** Their dumps live in a private downstream repo, sanitized: no customer hosts, no inline secrets. That repo runs them through xdsview's core without any module at each xdsview release, and reports regressions to xdsview without naming the product. A downstream product module comes later, only when a consumer needs its attribution and an owner accepts responsibility for its compatibility; it depends only on xdsview's public API. Public records say "downstream product module". Public xdsview tests the core with neutral fixtures: a static HTTP bootstrap, a synthetic custom filter, and optionally an Envoy Gateway dump.
 
+## Architecture guidelines
+
+Rules every repo in the program follows in design and review. A design that breaks one says so and records why in its own `decisions.md`. Review: [`reviews/2026-11-25-p011-p012-codex.md`](reviews/2026-11-25-p011-p012-codex.md).
+
+### Identity (P-011)
+
+1. **Logical IDs come from scoped names.** An ID that must survive a recompute, restart, upgrade, reinstall or delete-and-recreate derives from group, kind, namespace and name, plus a discriminator the design defines (a section name, a finding code). An entity with no Kubernetes name may use a discriminator its producer guarantees stable; otherwise rule 6 applies. The design declares the scope (cluster or install) and includes it where keys cross that boundary. This covers finding IDs, URLs and joins across tools.
+2. **No ranks or ordinals in logical IDs.** A position in a sorted list shifts when a sibling is added, removed or hidden, and rekeys survivors. Snellius D-132 fixed this for D-040's rank-based IDs.
+3. **UIDs key one incarnation.** A UID may key state that belongs to the current object or pod, and may verify that two observations saw the same one: grace periods, restart holds, per-pod counter deltas, kgwctl's pod re-identify. It never keys a logical ID. generation, resourceVersion and content hashes track revisions within one incarnation; they are not instance markers either.
+4. **Recreate keeps the ID, not every clock.** A same-name recreate keeps its logical ID, so bookmarks and URLs still work. Each time value says what it measures: a grace period or `since` that measures the current incarnation may restart.
+5. **Names that are not stable are not keys.** Generated pod names and control-plane-generated Envoy names churn or collide. A rename changes a name-based ID unless the design adds an alias or migration. Runtime-to-declared joins go through xdsview's provenance mapping (P-001, P-010).
+6. **Positional and unnamed IDs stay in their snapshot.** xdsview's Phase 9 occurrence IDs are valid only in the dump that produced them. An entity with no stable discriminator stays snapshot-local; a join across snapshots reports it as ambiguous or unknown.
+
+Each repo checks its existing logical IDs against these rules at its next phase start; Snellius's remaining D-040 ranks are the known case. Snellius D-102 and D-132 already follow rule 1.
+
+### Version bumps (P-012)
+
+A repo that moves to a later kgateway, downstream product, Gateway API or Envoy version reviews, in the same change, every versioned interface it consumes.
+
+1. **Diff the CRDs, where the tool reads them.** Old against new, for each product.
+2. **New kinds:** decide RBAC and support for each. A kind list the tool holds (RBAC roles, watched kinds, kind tables) gains the kind or records why not.
+3. **Changed and removed kinds:** check served and storage versions, removed kinds and versions (stale watches and version mappings), new Secret references, and new credential fields that redaction must cover.
+4. **Mappings outside CRDs.** Tables keyed by product or Envoy version go stale with an empty CRD diff: xdsview's policy-field-to-filter and filter-type tables, for example. Check them against controller output or Envoy fixtures for the new version.
+5. **Mirrors.** Before claiming support for a new minor, run the mirror rules: update the pinned minors and check conformance against real controller output.
+6. **Each list has a check for its intended scope.** A guard test, an existing behavioural test, or a recorded exclusion counts. With no authoritative input to test against, the repo documents the exception and its fallback check. kgwctl D-028 is the reference: `TestReaderRoleCoversServedKinds` plus a bump checklist next to its test CRDs.
+
+Applies to xdsview, kgwctl, Snellius and every downstream build with its own lists or mappings. Found when Gateway API v1.7.0 served UDPRoute and three experimental kinds the kgwctl reader role lacked.
+
 ## Ownership
 
 | Concern | Owner | Consumers |
@@ -266,3 +297,4 @@ None is filed by a tooling session without the owner's approval.
 4. **Phase close:** update the edge status and contract table here. Propose a release tag if a contract changed. Notify each consumer with a `cross-repo` issue in its repo naming the edge and version. Snellius also files a `cross-repo` issue in snellius.dev for the site session (P-006).
 5. **Live pings:** local sessions can message each other (`SendMessage`; find names with `ListAgents`, named after the repo directory). Use it for "tag published" or "issue filed" only. The record lives in this file and in issues.
 6. **Changes to this file** are made by the session whose phase changed, in a small commit of its own.
+7. **Reviews:** a review brief or reviewer prompt in any repo links "Architecture guidelines" in this file, so reviewers and running sessions check against the current rules.
