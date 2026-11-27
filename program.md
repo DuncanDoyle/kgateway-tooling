@@ -82,12 +82,12 @@ UI phase numbers follow Snellius D-084 (2026-11-14): Phase 7 is Identity & Acces
 
 Revised 2026-11-22. The first order (2026-11-04) is in git history.
 
-Done: xdsview Phases 4–6, 8 and 9 (`v0.7.0`, E15); kgwctl Phases 1–3; Snellius Phases 1–8 (`v0.9.0`, E7).
+Done: xdsview Phases 4–6, 8 and 9 (`v0.7.0`, E15); kgwctl Phases 1–4; Snellius Phases 1–8 (`v0.9.0`, E7).
 
 | Priority | xdsview | kgwctl | Snellius |
 |---|---|---|---|
-| now | Phase 9 done: `v0.7.0` (E15, 2026-11-26). Open with the owner: A4, E4 | Phase 4 support bundle: proxy-side convergence inputs and controller metrics per replica, timestamped; bump to xdsview `v0.5.0` with golden updates, then `v0.6.0` | Phase 8 done: `v0.9.0` (E7, 2026-11-26). Next: snellius#68, then Phase 9 Search & Route Tester when the owner starts it |
-| next | additive E15 extensions on a named consumer case (P-010 point 7) | Phase 5 full analysis, `analyze -f`; migrate `proxy routes` to E15 (`v0.7.0`, kgwctl#15); the E14 live convergence diagnostic (kgwctl#13), slot to be decided | M-1 matcher conformance; design the optional xDS cross-check for Phase 12 |
+| now | Phase 9 done: `v0.7.0` (E15, 2026-11-26). Open with the owner: A4, E4 | Phase 4 done (support bundle, 2026-11-27). Now Phase 4b (kgwctl D-031): migrate `proxy routes` to E15 (`v0.7.0`, kgwctl#15), Snellius `v0.9.0`, envelope `v1alpha2`, then the first release, `v0.1.0` | Phase 8 done: `v0.9.0` (E7, 2026-11-26). Next: snellius#68, then Phase 9 Search & Route Tester when the owner starts it |
+| next | additive E15 extensions on a named consumer case (P-010 point 7) | Phase 5 full analysis, `analyze -f`; the E14 live convergence diagnostic (kgwctl#13), slot to be decided | M-1 matcher conformance; design the optional xDS cross-check for Phase 12 |
 | later | a convergence phase only if the investigation names one (E14) | Phase 6 after E7 and E15 (scoped `merge.*` records); Phase 7 move into kgateway after E6; local MCP in a downstream build (E10, kgwctl D-023) | Phases 9, 14, then 10–13; Phase 12 consumes E4, E5, E13 through the E15 tag |
 
 No hard blockers. kgwctl Phase 4, xdsview Phase 8 and Snellius Phase 8 run in parallel.
@@ -179,6 +179,8 @@ Questions to answer, each with an operator scenario:
 Inputs: kgwctl Phase 4 bundles give proxy captures and controller metrics, timestamped. They leave out the controller's admin snapshots (kgwctl Phase 4 design). The investigation captures the controller side itself on kind clusters, and records which questions a bundle alone cannot answer. Output: a recommendation naming the operator scenarios, the provider of each piece (E14), and the upstream asks it depends on.
 
 **Outcome (2026-11-24).** The investigation reported ([xdsview `263055d`](https://github.com/DuncanDoyle/xdsview/blob/263055d/docs/investigations/xds-convergence.md), two Codex reviews). Convergence is answered per proxy pod and per subscription, as `yes`, `no` or `unknown`, naming the proving side. No generic xDS diff. Providers are in E14; the upstream asks it refines are U7, U8 and U9.
+
+**Bundle evidence as delivered (kgwctl Phase 4, 2026-11-27).** `manifest.json` lists each controller and proxy replica with namespace, pod, UID, owner, readiness, phase, start time and restart count per container. Each capture is an item with its own time and status. Per proxy replica: `config_dump.json` (with endpoints unless `--no-endpoints`), which carries `version_text`, listener states and the rejection details that Envoy reports; `stats.txt`, `metrics.txt`, `server_info.json`, `certs.json` and `clusters.txt`. Per controller replica: `metrics.txt`. It leaves out the controller's admin snapshots, so a bundle stays an offline ceiling (E14): it shows what each replica held at capture time, not whether that is what the controller intends.
 
 ## Control-plane-agnostic xdsview (P-010)
 
