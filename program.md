@@ -288,6 +288,7 @@ None is filed by a tooling session without the owner's approval.
 6. ~~Does the convergence investigation produce a new edge, a Snellius finding, or nothing?~~ Answered 2026-11-24: both, see E14.
 7. Exact Go names and shapes of the Phase 9 contract (E15). xdsview's Phase 9 design decides. kgwctl and Snellius review the design before it is approved.
 8. ~~M-3 (the client-key mirror) before U9?~~ Answered 2026-11-24: not now; see the mirror register.
+9. Can the core take Envoy-build knowledge from the caller (descriptions of filters a custom Envoy build adds: sides, config decoding) without breaking P-010 rule 1? Today modules only add claims after the parse. Raised by the owner 2026-11-27. xdsview, when a consumer names a case.
 
 ## Coordination protocol
 
